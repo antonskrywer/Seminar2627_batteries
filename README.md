@@ -32,11 +32,12 @@ Benötigte Pakete: `psychTestR`, `psychTestRCAT`, `JAJ`, `BDS`
 
 ## Dots-Server
 
-1. Die Ordner `jaj_battery/` und `bds_battery/` nach `/srv/shiny-server/`
-   kopieren und `output/` für den Nutzer `shiny` beschreibbar machen.
-2. Das Admin-Passwort kommt wie bei den Lernprotokollen aus
-   `PROTOCOL_ADMIN_PASSWORD` (`/home/shiny/.Renviron`).
-3. Die Ergebnisordner in `MONITOR_TEST_DIRS` des Lernmonitors eintragen:
-   `/srv/shiny-server/jaj_battery/output/results;/srv/shiny-server/bds_battery/output/results`
+Die Apps laufen unter `/musikalische_entwicklung_messen/JAJ/` und
+`/musikalische_entwicklung_messen/BDS/`. Schritt für Schritt: [DEPLOY.md](DEPLOY.md).
+
+- Admin-Passwort wie bei den Lernprotokollen aus `PROTOCOL_ADMIN_PASSWORD`
+  (`/home/shiny/.Renviron`).
+- Der Lernmonitor liest die Ergebnisse über `MONITOR_TEST_DIRS`:
+  `/srv/shiny-server/musikalische_entwicklung_messen/JAJ/output/results;/srv/shiny-server/musikalische_entwicklung_messen/BDS/output/results`
 
 Ergebnisse (`output/`) gehören nicht ins Repository.
