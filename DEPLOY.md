@@ -131,11 +131,91 @@ Die Ordner werden beim nächsten Durchlauf neu angelegt.
 cd /srv/shiny-server/Seminar2627_batteries && sudo git pull
 sudo rsync -a --exclude output /srv/shiny-server/Seminar2627_batteries/jaj_battery/ /srv/shiny-server/musikalische_entwicklung_messen/JAJ/
 sudo rsync -a --exclude output /srv/shiny-server/Seminar2627_batteries/bds_battery/ /srv/shiny-server/musikalische_entwicklung_messen/BDS/
-sudo chown -R shiny:shiny /srv/shiny-server/musikalische_entwicklung_messen/JAJ /srv/shiny-server/musikalische_entwicklung_messen/BDS
-sudo touch /srv/shiny-server/musikalische_entwicklung_messen/JAJ/restart.txt /srv/shiny-server/musikalische_entwicklung_messen/BDS/restart.txt
+sudo rsync -a --exclude output /srv/shiny-server/Seminar2627_batteries/tom_battery/ /srv/shiny-server/musikalische_entwicklung_messen/TOM/
+sudo chown -R shiny:shiny /srv/shiny-server/musikalische_entwicklung_messen/JAJ /srv/shiny-server/musikalische_entwicklung_messen/BDS /srv/shiny-server/musikalische_entwicklung_messen/TOM
+sudo touch /srv/shiny-server/musikalische_entwicklung_messen/JAJ/restart.txt /srv/shiny-server/musikalische_entwicklung_messen/BDS/restart.txt /srv/shiny-server/musikalische_entwicklung_messen/TOM/restart.txt
 ```
 
 `--exclude output` sorgt dafür, dass erhobene Daten erhalten bleiben.
+
+## TOM-Fragebogen ergänzen
+
+Ziel-URL: `http://<Server>:3838/musikalische_entwicklung_messen/TOM/`
+
+### 1. Code holen und Paket prüfen *(harmlos)*
+
+```bash
+cd /srv/shiny-server/Seminar2627_batteries && sudo git pull
+Rscript -e 'packageVersion("psyquest"); sum(psyquest::psyquest_item_bank$q_id == "TOM")'
+```
+
+Erwartet: eine Versionsnummer und `12`.
+
+### 2. App kopieren und laden *(harmlos)*
+
+```bash
+sudo rsync -a --exclude output /srv/shiny-server/Seminar2627_batteries/tom_battery/ /srv/shiny-server/musikalische_entwicklung_messen/TOM/
+sudo chown -R shiny:shiny /srv/shiny-server/musikalische_entwicklung_messen/TOM
+sudo touch /srv/shiny-server/musikalische_entwicklung_messen/TOM/restart.txt
+```
+
+### 3. Im Browser ausprobieren
+
+Mit der Test-ID `99999999` zweimal durchlaufen, einmal Durchgang 1, einmal
+Durchgang 2. Beide Male muss der Fragebogen von vorn beginnen. Danach:
+
+```bash
+ls /srv/shiny-server/musikalische_entwicklung_messen/TOM/output/results
+```
+
+### 4. Lernmonitor: neue Version und Vorjahresdaten
+
+Den Monitor auf den neuen Stand bringen, so wie er bisher deployt wurde
+(`git pull` in seinem Ordner, dann `restart.txt`).
+
+Prüfen, ob `MONITOR_TEST_DIRS` fest eingetragen ist:
+
+```bash
+sudo grep MONITOR_TEST_DIRS /home/shiny/.Renviron
+```
+
+Steht dort eine feste Liste (nur JAJ und BDS), findet der Monitor den TOM
+nicht. Dann die Zeile mit `sudo nano /home/shiny/.Renviron` löschen (der
+Standard `/srv/shiny-server/musikalische_entwicklung_messen/*/output/results`
+findet alle Batterien) oder den TOM-Pfad mit `;` anfügen.
+
+Die TOM-Werte aus dem WiSe 25/26 liegen lokal in
+`learning_monitor/data/tom_wise2526.csv` (erzeugt mit
+`learning_monitor/tools/convert_tom_wise2526.R`). Sie enthalten
+Matrikelnummern und kommen deshalb nicht in ein Repository und nicht unter
+`/srv/shiny-server`, sondern nach `/home/shiny/monitor_data`. Vom eigenen
+Rechner hochladen:
+
+```bash
+scp learning_monitor/data/tom_wise2526.csv ubuntu@<Server>:/tmp/
+```
+
+Auf dem Server:
+
+```bash
+sudo mkdir -p /home/shiny/monitor_data
+sudo mv /tmp/tom_wise2526.csv /home/shiny/monitor_data/
+sudo chown -R shiny:shiny /home/shiny/monitor_data
+sudo chmod 700 /home/shiny/monitor_data && sudo chmod 600 /home/shiny/monitor_data/tom_wise2526.csv
+sudo touch /srv/shiny-server/<monitor-ordner>/restart.txt
+```
+
+Im Monitor mit `99999999` anmelden: In der Übersicht stehen zwei
+TOM-Zeilen je Skala mit Durchgang 1 und 2; unter Univariat gibt es
+„Anfang der Sitzung“, „Ende der Sitzung“ und „Veränderung“.
+
+### 5. Testdaten löschen *(löscht Daten!)*
+
+Nur solange noch keine Studierenden den TOM ausgefüllt haben:
+
+```bash
+sudo rm -rf /srv/shiny-server/musikalische_entwicklung_messen/TOM/output
+```
 
 ## Fehlersuche
 
